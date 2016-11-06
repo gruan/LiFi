@@ -1,14 +1,14 @@
-TARGET = fileToBits
+TARGET = test
 LIBS = -lm
-CC = gcc
-CFLAGS = -g -Wall
+CC = g++
+CFLAGS = -g -Wall -std=c++11
 
 .PHONY: default all clean
 
 default: $(TARGET)
 all: default
 
-OBJECTS = $(patsubst %.c, %.o, $(wildcard *.c))
+OBJECTS = $(patsubst %.cpp, %.o, $(wildcard *.cpp))
 HEADERS = $(wildcard *.h)
 
 %.o: %.c $(HEADERS)
