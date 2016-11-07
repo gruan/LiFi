@@ -4,6 +4,7 @@
 #pragma once
 
 #include <sstream>
+#include "FourByteFiveByteEncoder.h"
 
 using namespace std;
 
@@ -22,6 +23,7 @@ private:
 
     size_t m_bitsOfChar;
     stringstream * m_stream;
+    FourByteFiveByteEncoder * m_encoder;
 };
 
 #endif

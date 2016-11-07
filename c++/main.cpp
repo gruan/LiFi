@@ -1,16 +1,20 @@
+#include <fstream>
+#include <fcntl.h>
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <iostream>
+#include <unistd.h>
 
+#include "ArduinoSerial.h"
 #include "DataStream.h"
 
 using namespace std;
 
-string USAGE_STR = "Usage: fileToBits filepath\n";
+const string USAGE_STR = "Usage: fileToBits filepath\n";
 
-size_t BUFFER_SIZE = 50;
-size_t SIZE_OF_CHAR = 8;
+const size_t BAUD_RATE = 9600;
+const char * SERIAL_PORT = "/dev/cu.usbmodem1411";
+const size_t ASCII_NUM_BITS = 8;
 
 void validateCLIArguments(int argc, char * argv[])
 {
@@ -20,21 +24,39 @@ void validateCLIArguments(int argc, char * argv[])
     }
 }
 
+int openSerialPort()
+{
+    int fd = serialport_init(SERIAL_PORT, BAUD_RATE);
+    if (fd == -1) {
+        fprintf(stderr, "[ERR] Couldn't open port\n");
+        exit(EXIT_FAILURE);
+    }
+    serialport_flush(fd);
+
+    return fd;
+}
+
 int main (int argc, char * argv[]) {
     validateCLIArguments(argc, argv);
 
     char * filePath = argv[1];
 
-    DataStream * stream = new DataStream(8, filePath);
+    DataStream * stream = new DataStream(ASCII_NUM_BITS, filePath);
+    FourByteFiveByteEncoder * encoder = new FourByteFiveByteEncoder();
+    size_t bufLen =  encoder->numBitsAfterEncoding(ASCII_NUM_BITS) + 1; // Divide by 4 and multiply by 5 for 4B5B encoding.
+    char * buf = new char[bufLen];
+    memset(buf, 0, bufLen);
 
-    char * buf = new char[9];
-    memset(buf, 0, 9);
-    for (int i = 0; i < 5; ++i) {
-        stream->next(buf);
-        cout << buf << endl;
+    int arduinofd = openSerialPort();
+
+    while(stream->next(buf) == 0) {
+        printf("%s\n", buf);
+        serialport_write(arduinofd, buf);
     }
 
+    serialport_close(arduinofd);
     delete stream;
+    delete encoder;
 
     exit(EXIT_SUCCESS);
 }

@@ -11,6 +11,7 @@ DataStream::DataStream(size_t bitsOfChar, char * filePath)
 {
     m_bitsOfChar = bitsOfChar;
     m_stream = new stringstream();
+    m_encoder = new FourByteFiveByteEncoder();
 
     FILE * fp = NULL;
     char * line = NULL;
@@ -22,7 +23,8 @@ DataStream::DataStream(size_t bitsOfChar, char * filePath)
         exit(EXIT_FAILURE);
 
     while ( (read = getline(&line, &len, fp)) != -1 ) {
-        size_t lineLen = strlen(line);
+        // Disregard trailing \n added by getline.
+        size_t lineLen = strlen(line) - 1;
         for (size_t i = 0; i < lineLen; ++i) {
             // Add character to stream.
             if (addToStream(line[i])) {
@@ -41,6 +43,7 @@ DataStream::~DataStream()
     // Clear contents of stringstream.
     m_stream->str(string());
     delete m_stream;
+    delete m_encoder;
 }
 
 // buf needs to be able to hold m_bitsOfChar.
@@ -56,8 +59,7 @@ int DataStream::next(char * buf)
         return -1;
     }
 
-    m_stream->get(buf, m_bitsOfChar);
-    cout << buf << endl;
+    m_stream->get(buf, m_encoder->numBitsAfterEncoding(m_bitsOfChar) + 1);
     return 0;
 }
 
@@ -96,9 +98,14 @@ int DataStream::addToStream(char c)
     string binaryRep;
     numToBinary(charCode, binaryRep);
 
+    // Convert with 4B5B
+    string firstHalf = binaryRep.substr(0, m_bitsOfChar / 2);
+    string secondHalf = binaryRep.substr(m_bitsOfChar / 2 , m_bitsOfChar / 2);
+
     // printf("Adding character %c with charCode %zu and binary representation %s\n", c, charCode, binaryRep.c_str());
 
-    (*m_stream) << binaryRep;
+    (*m_stream) << m_encoder->encode(firstHalf);
+    (*m_stream) << m_encoder->encode(secondHalf);
 
     return 0;
 }
