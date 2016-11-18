@@ -42,7 +42,7 @@ int main (int argc, char * argv[]) {
     char * filePath = argv[1];
 
     DataStream * stream = new DataStream(ASCII_NUM_BITS, filePath);
-    FourByteFiveByteEncoder * encoder = new FourByteFiveByteEncoder();
+    FourByteFiveByte * encoder = new FourByteFiveByte();
     size_t bufLen =  encoder->numBitsAfterEncoding(ASCII_NUM_BITS) + 1; // Divide by 4 and multiply by 5 for 4B5B encoding.
     char * buf = new char[bufLen];
     memset(buf, 0, bufLen);
@@ -50,7 +50,7 @@ int main (int argc, char * argv[]) {
     int arduinofd = openSerialPort();
 
     while(stream->next(buf) == 0) {
-        printf("%s\n", buf);
+        cout << buf << "\tBitstring sent" << endl;
         serialport_write(arduinofd, buf);
     }
 

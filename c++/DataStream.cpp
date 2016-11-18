@@ -11,7 +11,7 @@ DataStream::DataStream(size_t bitsOfChar, char * filePath)
 {
     m_bitsOfChar = bitsOfChar;
     m_stream = new stringstream();
-    m_encoder = new FourByteFiveByteEncoder();
+    m_encoder = new FourByteFiveByte();
 
     FILE * fp = NULL;
     char * line = NULL;

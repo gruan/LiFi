@@ -13,7 +13,7 @@
  This example code is in the public domain.
  */
 
-int BRIGHTNESS_ON = 100;
+int BRIGHTNESS_ON = 200;
 int BRIGHTNESS_OFF = 50;
 int ERR_BRIGHTNESS = 5;
 int NO_DATA_BRIGHTNESS = 0;
@@ -31,7 +31,17 @@ void setup() {
   Serial.setTimeout(1);
 }
 
-int determineBrightness(char currChar, char lastChar) {
+int noEncoding(char bit) {
+  if (bit == '1') {
+    return BRIGHTNESS_ON;
+  } else if (bit == '0') {
+    return BRIGHTNESS_OFF;
+  } else {
+    return ERR_BRIGHTNESS;
+  }
+}
+
+int nrziEncoding(char currChar, char lastChar) {
   // No data has yet been received.
   if (currChar == -1)
     return NO_DATA_BRIGHTNESS;
@@ -59,12 +69,19 @@ int determineBrightness(char currChar, char lastChar) {
 
 // the loop routine runs over and over again forever:
 void loop() {
-  if (Serial.available() > 0)
+  if (Serial.available() > 0) {
     byteRead = Serial.read();
+    // analogWrite(led, noEncoding(byteRead));
+    analogWrite(led, nrziEncoding(byteRead, lastByteRead));
+    lastByteRead = byteRead;
+  }
+  else {
+    analogWrite(led, 0);
+  }
+    
 
   // set the brightness of pin 9:
-  analogWrite(led, determineBrightness(byteRead, lastByteRead));
-  lastByteRead = byteRead;
+  
 
   // wait for 30 milliseconds to see the dimming effect
   delay(30);
