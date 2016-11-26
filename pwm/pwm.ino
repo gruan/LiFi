@@ -14,6 +14,7 @@
  */
 
 int BRIGHTNESS_ON = 200;
+int BRIGHTNESS_REP = 100;
 int BRIGHTNESS_OFF = 50;
 int ERR_BRIGHTNESS = 5;
 int NO_DATA_BRIGHTNESS = 0;
@@ -22,6 +23,7 @@ int led = 9;           // the PWM pin the LED is attached to
 
 int byteRead = -1;
 int lastByteRead = -1;
+bool repBrightnessFlag = true;
 
 // the setup routine runs once when you press reset:
 void setup() {
@@ -29,6 +31,22 @@ void setup() {
   pinMode(led, OUTPUT);
   Serial.begin(9600);
   Serial.setTimeout(1);
+
+  calibrate(500);
+}
+
+void calibrate(int delayTime) {
+  int len = 3;
+  int calibrations[len] = { BRIGHTNESS_OFF, BRIGHTNESS_REP, BRIGHTNESS_ON };
+  int repetitions = 10;
+
+  int i, j;
+  for (i = 0; i < len; ++i) {
+    for (j = 0; j < repetitions; ++j) {
+      analogWrite(led, calibrations[i]);
+      delay(delayTime);
+    }
+  }
 }
 
 int noEncoding(char bit) {
@@ -67,12 +85,43 @@ int nrziEncoding(char currChar, char lastChar) {
     return BRIGHTNESS_ON;
 }
 
+int ruanEncoding(char currBit, char lastBit/*, bool & repBrightnessFlag*/) {
+  // No data has yet been received.
+  if (currBit == -1)
+    return NO_DATA_BRIGHTNESS;
+
+  // Error. The character should only be -1, '0', or '1'.
+  if (currBit != '0' && currBit != '1')
+    return ERR_BRIGHTNESS;
+
+  // Bit was received.
+
+  // No repetition. This is the same as a noEncoding scheme.
+  if (currBit != lastBit) {
+    repBrightnessFlag = true;
+    return noEncoding(currBit);
+  }
+
+  // Repetition. Alternate between the noEncoding brightness and a specified repeat brightness.
+  int brightness = ERR_BRIGHTNESS;
+  if (repBrightnessFlag)
+    brightness = BRIGHTNESS_REP;
+  else
+    brightness = noEncoding(currBit);
+
+  repBrightnessFlag = !repBrightnessFlag;
+  return brightness;
+}
+
 // the loop routine runs over and over again forever:
 void loop() {
   if (Serial.available() > 0) {
     byteRead = Serial.read();
     // analogWrite(led, noEncoding(byteRead));
-    analogWrite(led, nrziEncoding(byteRead, lastByteRead));
+ 
+    // analogWrite(led, nrziEncoding(byteRead, lastByteRead));
+     analogWrite(led, ruanEncoding(byteRead, lastByteRead/*, repBrightnessFlag*/));
+
     lastByteRead = byteRead;
   }
   else {
@@ -84,5 +133,5 @@ void loop() {
   
 
   // wait for 30 milliseconds to see the dimming effect
-  delay(30);
+  delay(1000);
 }

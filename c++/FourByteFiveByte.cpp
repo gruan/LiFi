@@ -55,7 +55,7 @@ const string & FourByteFiveByte::decode(const string & str) const
      return m_decodeTable->at(str);
 }
 
-size_t FourByteFiveByte::numBitsAfterEncoding(size_t numBits) const
+size_t FourByteFiveByte::numBitsAfterEncoding(size_t numBits)
 {
     return numBits * 5 / 4;
 }

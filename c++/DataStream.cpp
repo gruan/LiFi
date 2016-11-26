@@ -7,19 +7,22 @@
 
 #include "DataStream.h"
 
-DataStream::DataStream(size_t bitsOfChar, char * filePath)
+DataStream::DataStream(size_t bitsOfChar, char * filePath, bool isEncoderEnabled = false)
 {
     m_bitsOfChar = bitsOfChar;
     m_stream = new stringstream();
-    m_encoder = new FourByteFiveByte();
 
-    FILE * fp = NULL;
-    char * line = NULL;
+    m_encoder = nullptr;
+    if (isEncoderEnabled)
+        m_encoder = new FourByteFiveByte();
+
+    FILE * fp = nullptr;
+    char * line = nullptr;
     size_t len = 0;
     ssize_t read;
 
     fp = fopen(filePath, "r");
-    if (fp == NULL)
+    if (fp == nullptr)
         exit(EXIT_FAILURE);
 
     while ( (read = getline(&line, &len, fp)) != -1 ) {
@@ -59,8 +62,16 @@ int DataStream::next(char * buf)
         return -1;
     }
 
-    m_stream->get(buf, m_encoder->numBitsAfterEncoding(m_bitsOfChar) + 1);
+    m_stream->get(buf, bufSizeNeeded());
     return 0;
+}
+
+size_t DataStream::bufSizeNeeded()
+{
+    if (m_encoder)
+        return m_encoder->numBitsAfterEncoding(m_bitsOfChar) + 1;
+    else
+        return m_bitsOfChar + 1;
 }
 
 int DataStream::charToSize(char c, size_t & res)
@@ -98,14 +109,15 @@ int DataStream::addToStream(char c)
     string binaryRep;
     numToBinary(charCode, binaryRep);
 
-    // Convert with 4B5B
-    string firstHalf = binaryRep.substr(0, m_bitsOfChar / 2);
-    string secondHalf = binaryRep.substr(m_bitsOfChar / 2 , m_bitsOfChar / 2);
+    if (m_encoder) { // Use encoder
+        string firstHalf = binaryRep.substr(0, m_bitsOfChar / 2); string secondHalf = binaryRep.substr(m_bitsOfChar / 2 , m_bitsOfChar / 2);
+        // printf("Adding character %c with charCode %zu and binary representation %s\n", c, charCode, binaryRep.c_str());
 
-    // printf("Adding character %c with charCode %zu and binary representation %s\n", c, charCode, binaryRep.c_str());
-
-    (*m_stream) << m_encoder->encode(firstHalf);
-    (*m_stream) << m_encoder->encode(secondHalf);
+        (*m_stream) << m_encoder->encode(firstHalf);
+        (*m_stream) << m_encoder->encode(secondHalf);
+    } else {
+        (*m_stream) << binaryRep;
+    }
 
     return 0;
 }

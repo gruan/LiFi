@@ -15,7 +15,7 @@ public:
 
     const string & encode(const string &) const;
     const string & decode(const string &) const;
-    size_t numBitsAfterEncoding(size_t numBits) const;
+    static size_t numBitsAfterEncoding(size_t numBits);
 
 private:
     map<string, string> * m_encodeTable;

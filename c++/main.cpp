@@ -40,12 +40,14 @@ int main (int argc, char * argv[]) {
     validateCLIArguments(argc, argv);
 
     char * filePath = argv[1];
+    bool isEncoderEnabled = true;
 
-    DataStream * stream = new DataStream(ASCII_NUM_BITS, filePath);
-    FourByteFiveByte * encoder = new FourByteFiveByte();
-    size_t bufLen =  encoder->numBitsAfterEncoding(ASCII_NUM_BITS) + 1; // Divide by 4 and multiply by 5 for 4B5B encoding.
+    DataStream * stream = new DataStream(ASCII_NUM_BITS, filePath, isEncoderEnabled);
+    size_t bufLen = stream->bufSizeNeeded();
     char * buf = new char[bufLen];
     memset(buf, 0, bufLen);
+
+    cout << "Opening Serial Port" << endl;
 
     int arduinofd = openSerialPort();
 
@@ -56,7 +58,6 @@ int main (int argc, char * argv[]) {
 
     serialport_close(arduinofd);
     delete stream;
-    delete encoder;
 
     exit(EXIT_SUCCESS);
 }

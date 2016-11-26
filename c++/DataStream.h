@@ -11,11 +11,12 @@ using namespace std;
 class DataStream
 {
 public:
-    DataStream(size_t, char *);
+    DataStream(size_t, char *, bool);
     ~DataStream();
 
     int next(char * buf);
-    bool isEmpty();
+
+    size_t bufSizeNeeded();
 private:
     int addToStream(char);
     int charToSize(char, size_t & res);
