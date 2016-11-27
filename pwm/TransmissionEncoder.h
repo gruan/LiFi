@@ -1,12 +1,12 @@
-#ifndef TRANSMISSIONENCODE_H
-#define TRANSMISSIONENCODE_H
+#ifndef TRANSMISSION_ENCODER_H
+#define TRANSMISSION_ENCODER_H
 
 #pragma once
 
-class TransmissionEncode
+class TransmissionEncoder
 {
 public:
-    TransmissionEncode(int on, int repeat, int off, int err, int noPower, char specialChar)
+    TransmissionEncoder(int on, int repeat, int off, int err, int noPower, char specialChar)
         : m_brightnessOn(on),
           m_brightnessRepeat(repeat),
           m_brightnessOff(off),

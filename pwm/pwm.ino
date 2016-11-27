@@ -1,6 +1,6 @@
 
 #include "SymbolEncode.h"
-#include "TransmissionEncode.h"
+#include "TransmissionEncoder.h"
 
 #define LED 9 // the PWM pin the LED is attached to
 
@@ -10,10 +10,14 @@
 #define   ERR_BRIGHTNESS 5
 #define   NO_POWER_BRIGHTNESS 0
 
-#define   SPECIAL_CHAR 251  // Indicates that no data has yet been read
+#define   SPECIAL_CHAR    251    // Indicates that no data has yet been read
+#define   BEGIN_MES       123    // Indicates the beginning of a message {
+#define   CALIB_CHAR      126    // Indicates that calibration should be performed ~
+#define   END_MES         125    // Indicates the ending of a message }
+
 
 #define   CALIBRATION_DELAY 200
-#define   TRANSMISSION_DELAY 500 // 200
+#define   TRANSMISSION_DELAY 200 // 200
 
 #define   CALIBRATE_ENABLED false
 
@@ -21,11 +25,12 @@
 char currBit = SPECIAL_CHAR;  // Each bit is encoded as a string.
 char lastBit = SPECIAL_CHAR;
 
+TransmissionEncoder encoder(BRIGHTNESS_ON, BRIGHTNESS_REP, BRIGHTNESS_OFF, ERR_BRIGHTNESS, NO_POWER_BRIGHTNESS, SPECIAL_CHAR);
 char bitstring[8];
 
-TransmissionEncode encoder(BRIGHTNESS_ON, BRIGHTNESS_REP, BRIGHTNESS_OFF, ERR_BRIGHTNESS, NO_POWER_BRIGHTNESS, SPECIAL_CHAR);
+char charRead;
+bool isMessageOpen = false;
 
-// the setup routine runs once when you press reset:
 void setup() {
   // declare pin 9 to be an output:
   pinMode(LED, OUTPUT);
@@ -40,7 +45,7 @@ void setup() {
 }
 
 void test() {
-  // 0101010010010100
+  // Tests the bit sequence: 0101010010010100
   int len = 17;
   int test[len] = { BRIGHTNESS_ON, BRIGHTNESS_REP, BRIGHTNESS_ON, BRIGHTNESS_REP,
                     BRIGHTNESS_OFF, BRIGHTNESS_ON, BRIGHTNESS_OFF, BRIGHTNESS_REP,
@@ -70,15 +75,35 @@ void calibrate(int delayTime) {
   }
 }
 
-// the loop routine runs over and over again forever:
 void loop() {
   if (Serial.available() > 0) {
-    SymbolEncode::charToBitstring(Serial.read(), bitstring);
+    charRead = Serial.read();
+
+    if (charRead == BEGIN_MES) {
+      Serial.println("Message begins");
+      isMessageOpen = true;
+      return;
+    }
+    
+    if (charRead == CALIB_CHAR) {
+      Serial.println("Calibrate!");
+      calibrate(CALIBRATION_DELAY);
+      return;
+    } 
+    
+    if (charRead == END_MES) {
+      Serial.println("Message ends");
+      isMessageOpen = false;
+      return;
+    }
+
+    if (!isMessageOpen)
+      return;
+    
+    SymbolEncode::charToBitstring(charRead, bitstring);
 
     for (int i = 0; i < 8; ++i) {
       currBit = bitstring[i];
-      // analogWrite(LED, encoder.noEncoding(currBit));
-      // analogWrite(LED, encoder.nrziEncoding(currBit, lastBit));
       analogWrite(LED, encoder.ruanEncoding(currBit, lastBit));
 
       lastBit = currBit;

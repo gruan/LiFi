@@ -1,6 +1,6 @@
-#include "TransmissionEncode.h"
+#include "TransmissionEncoder.h"
 
-int TransmissionEncode::noEncoding(char bit) const
+int TransmissionEncoder::noEncoding(char bit) const
 {
   if (bit == '1') {
     return m_brightnessOn;
@@ -11,7 +11,7 @@ int TransmissionEncode::noEncoding(char bit) const
   }
 }
 
-int TransmissionEncode::nrziEncoding(char currBit, char lastBit) const
+int TransmissionEncoder::nrziEncoding(char currBit, char lastBit) const
 {
   // Error. The character should only be '0', or '1'.
   if (currBit != '0' && currBit != '1')
@@ -34,7 +34,7 @@ int TransmissionEncode::nrziEncoding(char currBit, char lastBit) const
     return m_brightnessOn;
 }
 
-int TransmissionEncode::ruanEncoding(char currBit, char lastBit)
+int TransmissionEncoder::ruanEncoding(char currBit, char lastBit)
 {
   // Error. The character should only be '0', or '1'.
   if (currBit != '0' && currBit != '1')
