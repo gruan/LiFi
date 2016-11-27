@@ -40,16 +40,16 @@ int main (int argc, char * argv[]) {
     validateCLIArguments(argc, argv);
 
     char * filePath = argv[1];
-    bool isEncoderEnabled = true;
+    bool isEncoderEnabled = false;
 
     DataStream * stream = new DataStream(ASCII_NUM_BITS, filePath, isEncoderEnabled);
     size_t bufLen = stream->bufSizeNeeded();
     char * buf = new char[bufLen];
     memset(buf, 0, bufLen);
 
-    cout << "Opening Serial Port" << endl;
-
+    cout << "Opening Serial Port..." << endl;
     int arduinofd = openSerialPort();
+    cout << "Serial Port Opened!" << endl;
 
     while(stream->next(buf) == 0) {
         cout << buf << "\tBitstring sent" << endl;
