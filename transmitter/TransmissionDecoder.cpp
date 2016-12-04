@@ -1,3 +1,7 @@
+/**
+ * Decodes the transmission of ruanEncoding.
+ */
+
 #include "TransmissionDecoder.h"
 
 // Returns '!' on error. Otherwise '0' or '1'

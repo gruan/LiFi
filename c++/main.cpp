@@ -12,9 +12,11 @@ using namespace std;
 
 const string USAGE_STR = "Usage: fileToBits filepath\n";
 
-const size_t BAUD_RATE = 9600;
+const size_t BAUD_RATE = 1200;
 const char * SERIAL_PORT = "/dev/cu.usbmodem1411";
 const size_t ASCII_NUM_BITS = 8;
+
+const bool isEncoderEnabled = true;
 
 void validateCLIArguments(int argc, char * argv[])
 {
@@ -40,7 +42,6 @@ int main (int argc, char * argv[]) {
     validateCLIArguments(argc, argv);
 
     char * filePath = argv[1];
-    bool isEncoderEnabled = false;
 
     DataStream * stream = new DataStream(ASCII_NUM_BITS, filePath, isEncoderEnabled);
     size_t bufLen = stream->bufSizeNeeded();

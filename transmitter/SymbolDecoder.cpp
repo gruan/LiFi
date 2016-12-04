@@ -15,7 +15,8 @@ char SymbolDecoder::decodeNextBit(char bit)
     if (m_queue.count() == BITS_PER_BYTE) {
         char asciiChar = '\0';
         for (int i = BITS_PER_BYTE - 1; i >= 0; --i)
-            c |= (m_queue.dequeue() - '0') << i
+            asciiChar |= (m_queue.dequeue() - '0') << i;
+        return asciiChar;
     }
 
     return -1;

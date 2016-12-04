@@ -9,10 +9,12 @@ class SymbolDecoder
 {
 public:
     static void bitstringToChar(char * buf, char & c);
-    char decodeNextBit(char c);
+
+    // Returns -1
+    char decodeNextBit(char bit);
 
 private:
     QueueArray<char> m_queue;
-}
+};
 
 #endif
